@@ -1,11 +1,19 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CitizenController;
+use App\Http\Controllers\AdminController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
-    return view('welcome');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
 });
 
 Route::get('/dashboard', function () {
@@ -34,27 +42,27 @@ Route::middleware(['auth', 'citizen'])->group(function () {
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     
     // Land Records CRUD
-    Route::get('/land-records', [\App\Http\Controllers\AdminController::class, 'indexLandRecords'])->name('land-records.index');
-    Route::get('/land-records/export', [\App\Http\Controllers\AdminController::class, 'exportLandRecords'])->name('land-records.export');
-    Route::get('/land-records/create', [\App\Http\Controllers\AdminController::class, 'createLandRecord'])->name('land-records.create');
-    Route::post('/land-records', [\App\Http\Controllers\AdminController::class, 'storeLandRecord'])->name('land-records.store');
-    Route::get('/land-records/{id}/edit', [\App\Http\Controllers\AdminController::class, 'editLandRecord'])->name('land-records.edit');
-    Route::put('/land-records/{id}', [\App\Http\Controllers\AdminController::class, 'updateLandRecord'])->name('land-records.update');
-    Route::delete('/land-records/{id}', [\App\Http\Controllers\AdminController::class, 'destroyLandRecord'])->name('land-records.destroy');
+    Route::get('/land-records', [AdminController::class, 'indexLandRecords'])->name('land-records.index');
+    Route::get('/land-records/export', [AdminController::class, 'exportLandRecords'])->name('land-records.export');
+    Route::get('/land-records/create', [AdminController::class, 'createLandRecord'])->name('land-records.create');
+    Route::post('/land-records', [AdminController::class, 'storeLandRecord'])->name('land-records.store');
+    Route::get('/land-records/{id}/edit', [AdminController::class, 'editLandRecord'])->name('land-records.edit');
+    Route::put('/land-records/{id}', [AdminController::class, 'updateLandRecord'])->name('land-records.update');
+    Route::delete('/land-records/{id}', [AdminController::class, 'destroyLandRecord'])->name('land-records.destroy');
     
     // Tax Generation & Export
-    Route::get('/taxes', [\App\Http\Controllers\AdminController::class, 'indexTaxes'])->name('taxes.index');
-    Route::get('/taxes/export', [\App\Http\Controllers\AdminController::class, 'exportTaxes'])->name('taxes.export');
-    Route::get('/taxes/generate', [\App\Http\Controllers\AdminController::class, 'createTaxGeneration'])->name('taxes.generate');
-    Route::post('/taxes/generate', [\App\Http\Controllers\AdminController::class, 'storeTaxGeneration'])->name('taxes.store');
+    Route::get('/taxes', [AdminController::class, 'indexTaxes'])->name('taxes.index');
+    Route::get('/taxes/export', [AdminController::class, 'exportTaxes'])->name('taxes.export');
+    Route::get('/taxes/generate', [AdminController::class, 'createTaxGeneration'])->name('taxes.generate');
+    Route::post('/taxes/generate', [AdminController::class, 'storeTaxGeneration'])->name('taxes.store');
     
     // Transfer Requests
-    Route::get('/transfers', [\App\Http\Controllers\AdminController::class, 'indexTransfers'])->name('transfers.index');
-    Route::post('/transfers/{id}/approve', [\App\Http\Controllers\AdminController::class, 'approveTransfer'])->name('transfers.approve');
-    Route::post('/transfers/{id}/reject', [\App\Http\Controllers\AdminController::class, 'rejectTransfer'])->name('transfers.reject');
+    Route::get('/transfers', [AdminController::class, 'indexTransfers'])->name('transfers.index');
+    Route::post('/transfers/{id}/approve', [AdminController::class, 'approveTransfer'])->name('transfers.approve');
+    Route::post('/transfers/{id}/reject', [AdminController::class, 'rejectTransfer'])->name('transfers.reject');
 });
 
 Route::middleware('auth')->group(function () {

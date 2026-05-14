@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+use Inertia\Inertia;
+
 class AdminController extends Controller
 {
     public function dashboard()
@@ -27,13 +29,13 @@ class AdminController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact(
-            'total_users', 
-            'total_land_records', 
-            'total_tax_collected', 
-            'pending_taxes_count',
-            'recent_payments'
-        ));
+        return Inertia::render('Admin/Dashboard', [
+            'total_users' => $total_users,
+            'total_land_records' => $total_land_records,
+            'total_tax_collected' => $total_tax_collected,
+            'pending_taxes_count' => $pending_taxes_count,
+            'recent_payments' => $recent_payments
+        ]);
     }
 
     public function indexLandRecords(Request $request)
@@ -50,13 +52,17 @@ class AdminController extends Controller
         }
 
         $records = $query->paginate(10)->withQueryString();
-        return view('admin.land-records.index', compact('records'));
+        return Inertia::render('Admin/LandRecords/Index', [
+            'records' => $records
+        ]);
     }
 
     public function createLandRecord()
     {
         $users = User::where('role', 'citizen')->get();
-        return view('admin.land-records.create', compact('users'));
+        return Inertia::render('Admin/LandRecords/Create', [
+            'users' => $users
+        ]);
     }
 
     public function storeLandRecord(Request $request)
@@ -89,7 +95,10 @@ class AdminController extends Controller
     {
         $record = LandRecord::findOrFail($id);
         $users = User::where('role', 'citizen')->get();
-        return view('admin.land-records.edit', compact('record', 'users'));
+        return Inertia::render('Admin/LandRecords/Edit', [
+            'record' => $record,
+            'users' => $users
+        ]);
     }
 
     public function updateLandRecord(Request $request, $id)

@@ -11,6 +11,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+use Inertia\Inertia;
+
 class CitizenController extends Controller
 {
     public function dashboard()
@@ -30,7 +32,12 @@ class CitizenController extends Controller
         // Dummy recent activities for now
         $recent_activities = []; 
 
-        return view('citizen.dashboard', compact('properties_count', 'pending_tax', 'next_due_date', 'recent_activities'));
+        return Inertia::render('Citizen/Dashboard', [
+            'properties_count' => $properties_count,
+            'pending_tax' => $pending_tax,
+            'next_due_date' => $next_due_date,
+            'recent_activities' => $recent_activities
+        ]);
     }
 
     public function landRecords()
@@ -40,15 +47,21 @@ class CitizenController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('citizen.land-records.index', compact('records'));
+        return Inertia::render('Citizen/LandRecords/Index', [
+            'records' => $records
+        ]);
     }
 
     public function showLandRecord($id)
     {
         $user = Auth::user();
-        $record = LandRecord::where('owner_id', $user->id)->findOrFail($id);
+        $record = LandRecord::where('owner_id', $user->id)->with('propertyTaxes')->findOrFail($id);
+        $latest_tax = $record->propertyTaxes()->latest()->first();
         
-        return view('citizen.land-records.show', compact('record'));
+        return Inertia::render('Citizen/LandRecords/Show', [
+            'record' => $record,
+            'latest_tax' => $latest_tax
+        ]);
     }
 
     public function showTaxPayment($id)
@@ -60,7 +73,10 @@ class CitizenController extends Controller
 
         $payments = Payment::where('property_tax_id', $tax->id)->latest()->get();
 
-        return view('citizen.tax.payment', compact('tax', 'payments'));
+        return Inertia::render('Citizen/Tax/Payment', [
+            'tax' => $tax,
+            'payments' => $payments
+        ]);
     }
 
     public function processTaxPayment(Request $request, $id)
@@ -96,7 +112,9 @@ class CitizenController extends Controller
         $user = Auth::user();
         $payment = Payment::where('citizen_id', $user->id)->findOrFail($id);
         
-        return view('citizen.tax.receipt', compact('payment'));
+        return Inertia::render('Citizen/Tax/Receipt', [
+            'payment' => $payment
+        ]);
     }
 
     public function payments()
@@ -107,7 +125,9 @@ class CitizenController extends Controller
             ->latest()
             ->get();
             
-        return view('citizen.payments', compact('payments'));
+        return Inertia::render('Citizen/Payments', [
+            'payments' => $payments
+        ]);
     }
 
     public function createTransferRequest($id)
@@ -115,8 +135,11 @@ class CitizenController extends Controller
         $user = Auth::user();
         $record = LandRecord::where('owner_id', $user->id)->findOrFail($id);
         
-        return view('citizen.land-records.transfer', compact('record'));
+        return Inertia::render('Citizen/LandRecords/Transfer', [
+            'record' => $record
+        ]);
     }
+
 
     public function storeTransferRequest(Request $request, $id)
     {
